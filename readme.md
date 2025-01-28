@@ -32,3 +32,6 @@
 
 ## Another testing
 - ansible-playbook -i inventory/hosts playbooks/export-and-test.yml --ask-vault-pass -vvv
+- chmod +x run.sh -> to make executable
+- ./run.sh go
+- notes for rust need to integrate with cargo
