@@ -1,0 +1,28 @@
+---
+- name: Test Environment Variables
+  hosts: local
+  gather_facts: false
+  vars_files:
+    - "../group_vars/local/vault.yml"
+    - "../group_vars/local/vars.yml"
+  tasks:
+    - name: Debug variables
+      debug:
+        msg: 
+          - "vault_database_url: {{ vault_database_url | default('undefined') }}"
+          - "database_url: {{ database_url | default('undefined') }}"
+      
+    - name: Create environment file
+      copy:
+        content: |
+          export DATABASE_URL="{{ database_url }}"
+        dest: "/tmp/test-envars"
+        mode: '0600'
+    - name: Source and test environment file
+      shell: |
+        source /tmp/test-envars
+        echo $DATABASE_URL
+      register: env_test
+    - name: Show result
+      debug:
+        var: env_test.stdout
