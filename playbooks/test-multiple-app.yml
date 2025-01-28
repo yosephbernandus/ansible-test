@@ -1,0 +1,52 @@
+---
+- name: Test Environment Variables
+  hosts: local
+  vars_files:
+    - "../group_vars/local/vault.yml"
+    - "../group_vars/local/vars.yml"
+  tasks:
+    - name: Create environment file
+      copy:
+        content: |
+          export DATABASE_URL="{{ database_url }}"
+        dest: "/tmp/test-envars"
+        mode: '0600'
+
+    - name: Copy test files
+      copy:
+        src: "../files/{{ item }}"
+        dest: "/tmp/{{ item }}"
+        mode: '0755'
+      loop:
+        - test.go
+        - test.py
+
+    - name: Run Go test
+      shell: |
+        source /tmp/test-envars
+        go run /tmp/test.go
+      register: go_test
+      
+    - name: Show Go result
+      debug:
+        var: go_test.stdout
+
+    - name: Run Python test
+      shell: |
+        source /tmp/test-envars
+        python3 /tmp/test.py
+      register: python_test
+
+    - name: Show Python result
+      debug:
+        var: python_test.stdout
+
+    - name: Clean up test files
+      file:
+        path: "/tmp/{{ item }}"
+        state: absent
+      loop:
+        - test.go
+        - test.py
+        - test-envars
+

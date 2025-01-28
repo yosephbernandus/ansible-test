@@ -12,3 +12,14 @@
 
 ## Create the ansible
 - ansible-vault create group_vars/local/vault.yml
+
+## Edit Ansible
+- ansible-vault edit group_vars/local/vault.yml
+
+## Testing
+- source /tmp/test-envars
+- echo $DATABASE_URL
+
+## Testing Multiple File
+- ansible-playbook -i inventory/hosts playbooks/test-multiple-app.yml --ask-vault-pass
+
