@@ -23,3 +23,12 @@
 ## Testing Multiple File
 - ansible-playbook -i inventory/hosts playbooks/test-multiple-app.yml --ask-vault-pass
 
+
+## Testing running with envar
+- ansible-playbook -i inventory/hosts playbooks/export-var.yml --ask-vault-pass -vvv
+- after run that can view .env file generated
+- can do 'source .env'
+- then running the app go and python
+
+## Another testing
+- ansible-playbook -i inventory/hosts playbooks/export-and-test.yml --ask-vault-pass -vvv

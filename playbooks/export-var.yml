@@ -1,0 +1,13 @@
+- name: Test Environment Variables
+  hosts: local
+  vars_files:
+    - "../group_vars/local/vault.yml"
+    - "../group_vars/local/vars.yml"
+  tasks:
+    - name: Create environment file
+      copy:
+        content: |
+          export DATABASE_URL="{{ vault_database_url }}"
+        dest: "{{ ansible_env.HOME }}/workspace/ansible-test/.env"
+        mode: '0600'
+

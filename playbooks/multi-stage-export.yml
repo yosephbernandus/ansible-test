@@ -8,8 +8,8 @@
     - name: Create environment file
       copy:
         content: |
-          export DATABASE_URL="{{ database_url }}"
-        dest: "/tmp/test-envars"
+          export DATABASE_URL="{{ vault_database_url }}"
+        dest: "{{ ansible_env.HOME }}/workspace/ansible-test/.env"
         mode: '0600'
 
     - name: Copy test files
@@ -20,10 +20,17 @@
       loop:
         - test.go
         - test.py
+        - test.rs
+
+    - name: Compile Rust test file
+      shell: |
+        rustc /tmp/test.rs -o /tmp/test_rust
+      args:
+        creates: /tmp/test_rust
 
     - name: Run Go test
       shell: |
-        source /tmp/test-envars
+        source {{ ansible_env.HOME }}/workspace/ansible-test/.env
         go run /tmp/test.go
       register: go_test
       
@@ -33,13 +40,23 @@
 
     - name: Run Python test
       shell: |
-        source /tmp/test-envars
+        source {{ ansible_env.HOME }}/workspace/ansible-test/.env
         python3 /tmp/test.py
       register: python_test
 
     - name: Show Python result
       debug:
         var: python_test.stdout
+
+    - name: Run Rust test
+      shell: |
+        source {{ ansible_env.HOME }}/workspace/ansible-test/.env
+        /tmp/test_rust
+      register: rust_test
+
+    - name: Show Rust result
+      debug:
+        var: rust_test.stdout
 
     - name: Clean up test files
       file:
@@ -48,5 +65,6 @@
       loop:
         - test.go
         - test.py
-        - test-envars
+        - test.rs
+        - test_rust
 

@@ -1,0 +1,69 @@
+---
+- name: Test Environment Variables
+  hosts: local
+  vars_files:
+    - "../group_vars/local/vault.yml"
+    - "../group_vars/local/vars.yml"
+  tasks:
+    - name: Create environment file
+      copy:
+        content: |
+          export DATABASE_URL="{{ vault_database_url }}"
+        dest: "{{ ansible_env.HOME }}/workspace/ansible-test/.env"
+        mode: '0600'
+
+    - name: Copy test files
+      copy:
+        src: "../files/{{ item }}"
+        dest: "/tmp/{{ item }}"
+        mode: '0755'
+      loop:
+        - test.go
+        - test.py
+        - test.rs
+
+    - name: Compile Rust test file
+      shell: |
+        rustc /tmp/test.rs -o /tmp/test_rust
+      args:
+        creates: /tmp/test_rust
+
+    - name: Run Go test
+      shell: |
+        source {{ ansible_env.HOME }}/workspace/ansible-test/.env
+        go run /tmp/test.go
+      register: go_test
+      
+    - name: Show Go result
+      debug:
+        var: go_test.stdout
+
+    - name: Run Python test
+      shell: |
+        source {{ ansible_env.HOME }}/workspace/ansible-test/.env
+        python3 /tmp/test.py
+      register: python_test
+
+    - name: Show Python result
+      debug:
+        var: python_test.stdout
+
+    - name: Run Rust test
+      shell: |
+        source {{ ansible_env.HOME }}/workspace/ansible-test/.env
+        /tmp/test_rust
+      register: rust_test
+
+    - name: Show Rust result
+      debug:
+        var: rust_test.stdout
+
+    - name: Clean up test files
+      file:
+        path: "/tmp/{{ item }}"
+        state: absent
+      loop:
+        - test.go
+        - test.py
+        - test.rs
+        - test_rust
